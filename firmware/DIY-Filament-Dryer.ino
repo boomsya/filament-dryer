@@ -4,7 +4,7 @@
 #include <LittleFS.h> 
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
-#include <ESP8266mDNS.h>
+//#include <ESP8266mDNS.h>
 #include <ESPAsyncWebServer.h>
 //thermistor setting
 #include <Thermistor2.h> //install ThermistorLibrary by Miguel Califa
@@ -13,8 +13,8 @@
 #include "config.h"
 
 //Wi-Fi
-const char* ssid = "dd-wrt";//Your WiFi network
-const char* password =  "111111222222444444";//WiFi network password
+const char* ssid = "YOUR WIFI NETWORK";//Your WiFi network
+const char* password =  "WIFI PASSWORD";//WiFi network password
 AsyncWebServer server(80);
 int WiFi_status = WL_IDLE_STATUS;
 unsigned long wifi_tick_previous = 0;
@@ -32,8 +32,9 @@ int statistics[5][15];
 unsigned long last_statistics_update_time = 999999;
 
 uint8_t ts_pos = 0;
+float target_humidity_in = 15.0;
 float target_temperature_in = 45.0;
-float max_temperature_heater = 55.0;
+float max_temperature_heater = 75.0;
 uint8_t box_status = 0; //status ON-OFF
 unsigned long begin_at_time = 0;
 
@@ -46,9 +47,6 @@ float humidity_out = 0;
 
 //Fan params
 uint16_t fan_status = 1; //fan status ON-OFF
-uint16_t fan_speed = 50;
-unsigned long last_fan_start_time = 0;
-uint8_t fan_max_speed = 0;
 
 //PID
 unsigned long pid_first_millis = 0;
@@ -92,8 +90,7 @@ void setup()
 
   //FAN -- Make sure FAN is initially OFF
   pinMode(PIN_FAN_PWM, OUTPUT);
-  analogWriteFreq(25000);
-  analogWrite(PIN_FAN_PWM, 0);
+  digitalWrite(PIN_FAN_PWM, LOW);
 
   //Check temperature and humidity sensors
   uint8_t i = 5;
@@ -146,12 +143,15 @@ void setup()
     LED_ON(PIN_LED_GREEN);
   }
   Serial.println("");
+  WiFi.onStationModeDisconnected(onStationDisconnected);
+  WiFi.setAutoConnect(true);
+  WiFi.setAutoReconnect(true);
 
-  if (!MDNS.begin(MDNS_NAME, WiFi.localIP())) {
+  /*if (!MDNS.begin(MDNS_NAME, WiFi.localIP())) {
     Serial.println("Error starting mDNS");
   } else {
     Serial.println((String) "mDNS http://" + MDNS_NAME + ".local");
-  }
+  }*/
 
   Serial.print("WiFi IP: ");
   Serial.println(WiFi.localIP());
@@ -169,7 +169,7 @@ void setup()
 
   setupWebServer();
   server.begin();
-  MDNS.addService("http", "tcp", 80);
+  //MDNS.addService("http", "tcp", 80);
 
   #if DEF_DEBUG_LITTLEFS
     debug_littlefs_files();
@@ -189,7 +189,7 @@ void setup()
 // 	** Main loop **
 void loop()
 {
-  MDNS.update();
+  //MDNS.update();
 
   //Sample temperature and humidity from all available sensors
   temperature_heater = readHeaterTemperature();
@@ -208,9 +208,8 @@ void loop()
     if (sample_temperatures(temperature_in, temperature_heater)) { //Sample temperature values
       heater_recalc_pwm(); // Recalculate PWM value for the heater
     }
-    if ((fan_max_speed == 1) && (fan_status == 1) && (millis() - last_fan_start_time > 2000)) {
-      fan_max_speed = 0;
-      enable_fan(1);
+    if ((humidity_in > 0.0) && (humidity_in <= target_humidity_in)) {
+      off();
     }
   } else { // Drybox is off. Turn/Keep off the heater
     LED_OFF(LED_STATUS_HEATER);
@@ -337,6 +336,7 @@ void sample_sens_in_and_out(void)
 float readHeaterTemperature()
 {
   float tempC = filtered_temperature.filtered(therm1.convertFtoC(therm1.readTemperature())); //read temperature near heater
+  if (tempC > 300) { tempC = 300; }
   #if DEF_DEBUG_SENSOR_SAMPLES
     Serial.print("Temp C: ");
     Serial.println(tempC);
@@ -348,18 +348,9 @@ void enable_fan(uint16_t enabled)
 {
   fan_status = enabled;
   if (enabled == 1){
-    uint32_t pwm_raw_fan;
-    if (fan_max_speed == 1) {
-      pwm_raw_fan = PWM_MAX_VALUE;
-    } else {
-      pwm_raw_fan = map(fan_speed, 0, 100, 0, PWM_MAX_VALUE);
-    }
-    #if DEF_DEBUG_PWM_VALUES
-      Serial.println((String) "Setting fan to " + pwm_raw_fan);
-    #endif
-    analogWrite(PIN_FAN_PWM, pwm_raw_fan);
+    digitalWrite(PIN_FAN_PWM, HIGH);
   } else {
-    analogWrite(PIN_FAN_PWM, 0);
+    digitalWrite(PIN_FAN_PWM, LOW);
   }
 }
 
@@ -541,9 +532,9 @@ void setupWebServer(void)
     request->send(LittleFS, "/index.html");
   });
 
-  server.serveStatic("/images/", LittleFS, "/images/").setCacheControl("max-age=31536000");
-  server.serveStatic("/css/", LittleFS, "/css/").setCacheControl("max-age=31536000");
-  server.serveStatic("/js/", LittleFS, "/js/").setCacheControl("max-age=31536000");
+  server.serveStatic("/images/", LittleFS, "/images/").setCacheControl("max-age=315360000");
+  server.serveStatic("/css/", LittleFS, "/css/").setCacheControl("max-age=315360000");
+  server.serveStatic("/js/", LittleFS, "/js/").setCacheControl("max-age=315360000");
 
   //Sensors statistics (last 3:30 hour)
   server.on("/stats", HTTP_GET, [](AsyncWebServerRequest *request) {
@@ -562,14 +553,20 @@ void setupWebServer(void)
 
   //Get dry box status
   server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request) {
-    char buff[285] = {0};
+    char buff[295] = {0};
     int len;
     unsigned long worktime = millis() - begin_at_time;
-    len = snprintf(buff, 285,
+    uint16_t fanst;
+    if ((fan_status == 1) && (box_status == 1)) {
+      fanst = 1;
+    } else {
+      fanst = 0;
+    }
+    len = snprintf(buff, 295,
                   "{\"status\":%d,\"target_temp_in\":%f,\"max_temp_heater\":%f,\"temp_in\":%f,\"temp_heater\":%f,\"humid_in\":%f, "
-                  "\"in_snsr_finded\":%d,\"out_snsr_finded\":%d,\"fan_speed\":%d,\"temp_out\":%f,\"humid_out\":%f,\"fan_st\":%d,\"worktime\":%lu}",
+                  "\"in_snsr_finded\":%d,\"out_snsr_finded\":%d,\"trgt_hmdty\":%f,\"temp_out\":%f,\"humid_out\":%f,\"fan_st\":%d,\"fanst\":%d,\"worktime\":%lu}",
                   box_status, target_temperature_in, max_temperature_heater, temperature_in, temperature_heater, humidity_in, 
-                  sensor_inner_founded, sensor_outer_founded, fan_speed, temperature_out, humidity_out, fan_status, worktime);
+                  sensor_inner_founded, sensor_outer_founded, target_humidity_in, temperature_out, humidity_out, fan_status, fanst, worktime);
     if (len) {
       request->send(200, "application/json", buff);
     } else {
@@ -577,28 +574,13 @@ void setupWebServer(void)
     }
   });
 
-  //Get params
-  /*server.on("/getparams", HTTP_GET, [](AsyncWebServerRequest *request) {
-    char buff[90] = {0};
-    int len;
-    len = snprintf(buff, 90,
-                  "{\"target_tmprt_in\":%f,\"max_tmprt_heater\":%f,\"fan_speed\":%f}",
-                  target_temperature_in, max_temperature_heater, fan_speed);
-
-    if (len) {
-      request->send(200, "application/json", buff);
-    } else {
-      request->send(500, "application/json", "{}");
-    }
-  });*/
-
-  //set target temperature, max heater temperature and fan speed
+  //set target temperature, max heater temperature and target humidity inside
   server.on("/setparams", HTTP_POST, [](AsyncWebServerRequest *request) {
-    // Check if temperature, heater temperature and fan speed arguments are present
-    if (request->hasParam("trgt_tmpr", true) && request->hasParam("max_htr_tmpr", true) && request->hasParam("fan_spd", true) && request->hasParam("fan_st", true)) {
+    // Check if temperature, heater temperature and target humidity inside arguments are present
+    if (request->hasParam("trgt_tmpr", true) && request->hasParam("max_htr_tmpr", true) && request->hasParam("trgt_hmdty", true) && request->hasParam("fan_st", true)) {
       int32_t temperature = 0;
       int32_t heater = 0;
-      int32_t fanspeed = 0;
+      int32_t targethumidity = 0;
       int32_t fanstatus = 0;
 
       String str_fanstatus = request->getParam("fan_st", true)->value();
@@ -610,25 +592,19 @@ void setupWebServer(void)
       String str_heater = request->getParam("max_htr_tmpr", true)->value();
       heater = str_heater.toInt();
 
-      String str_fanspeed = request->getParam("fan_spd", true)->value();
-      fanspeed = str_fanspeed.toInt();
+      String str_target_humidity = request->getParam("trgt_hmdty", true)->value();
+      targethumidity = str_target_humidity.toInt();
 
-      #if DEF_DEUG_WEB_API
-        Serial.println((String) "Target temp: " + temperature + "C Heater: " + heater + "C Fan Speed: " + fanspeed);
+      #if DEF_DEBUG_WEB_API
+        Serial.println((String) "Target temp: " + temperature + "C Heater: " + heater + "C Target humidity: " + targethumidity);
       #endif
 
       // Check drybox temperature and heater temperature limit
       if ((temperature <= LIMIT_TEMP_IN_MAX) && (heater <= LIMIT_TEMP_HEATER_MAX)) {
+        target_humidity_in = targethumidity;
         target_temperature_in = temperature;
         max_temperature_heater = heater;
-        if (fanspeed > 100) { fanspeed = 100; }
-        if (fanspeed < 0) { fanspeed = 0; }
-        fan_speed = fanspeed;
         if (box_status == 1) {
-          if (fanstatus == 1) {
-            fan_max_speed = 1;
-            last_fan_start_time = millis();
-          }
           enable_fan(fanstatus); 
         }
         request->send(200, "application/json", "{\"status\": \"OK\"}");
@@ -652,10 +628,6 @@ void setupWebServer(void)
       fanstatus = str_fanstatus.toInt();
 
       box_status = 1; //Box ON
-      if (fanstatus == 1) {
-        fan_max_speed = 1;
-        last_fan_start_time = millis();
-      }
       enable_fan(fanstatus);
       LED_ON(LED_STATUS_HEATER);
       begin_at_time = millis();
@@ -681,20 +653,23 @@ void off()
   box_status = 0;//Box OFF
   enable_fan(0);
   LED_OFF(LED_STATUS_HEATER);
-  //target_temperature_in = 0;
-  //max_temperature_heater = 0;
   begin_at_time = 0;
 }
 
 void on()
 {
   box_status = 1;//Box ON
-  fan_max_speed = 1;
-  last_fan_start_time = millis();
   enable_fan(1);
   LED_ON(LED_STATUS_HEATER);
   begin_at_time = millis();
   last_statistics_update_time = 999999;
+}
+
+void onStationDisconnected(const WiFiEventStationModeDisconnected& event) {
+  Serial.print("Disconnected from Wi-Fi: ");
+  Serial.println(event.reason);
+  // Attempt to reconnect to Wi-Fi network
+  WiFi.begin(ssid, password);
 }
 
 void check_wifi_connection(void)
@@ -711,7 +686,7 @@ void check_wifi_connection(void)
       Serial.println(WiFi.status());
       Serial.println("Reconnecting to WiFi...");
       WiFi.disconnect();
-      WiFi.reconnect();
+      WiFi.begin(ssid, password);
     }
 
     wifi_tick_previous = currentMillis;
