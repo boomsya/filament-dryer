@@ -1,4 +1,5 @@
-var chart, chart11, chart12;
+var chart, chart2, chart11, chart12;
+var chartdata, chartoptions, chartdata2, chartoptions2, options11, data11, options12, data12;
 var status_reading_now = false;
 
 $(document).ready(function () {
@@ -91,333 +92,138 @@ $(window).on('load', function () {
 	// This script is necessary for cross browsers icon sprite support (IE9+, ...)
 	svg4everybody();
 
-	//apexcharts
-	let options= {
+	//chartist
+	chartdata = {
+		labels: ['-3:30h', '-3:15h', '-3:00h', '-2:45h', '-2:30h', '-2:15h', '-2:00h', '-1:45h', '-1:30h', '-1:15h', '-1:00h', '-0:45h', '-0:30h', '-0:15h', 'Now'],
 		series: [
 			{
-				name: 'Heater temperature',
-				type: 'line',
-				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
-			},
-			{
 				name: 'Temperature inside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			}, {
 				name: 'Temperature outside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			},
 			{
+				name: 'Heater temperature',
+				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+			}
+		],
+		targetline: 75
+	};
+
+	chartdata2 = {
+		labels: ['-3:30h', '-3:15h', '-3:00h', '-2:45h', '-2:30h', '-2:15h', '-2:00h', '-1:45h', '-1:30h', '-1:15h', '-1:00h', '-0:45h', '-0:30h', '-0:15h', 'Now'],
+		series: [
+			{
 				name: 'Humidity inside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			},
 			{
 				name: 'Humidity outside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			}
-		],
-		chart: {
-			animations: {
-				enabled: false
-			},
-			selection: {
-				enabled: false
-			},
-			foreColor: 'rgba(15,156,230,.6)',
-			height: 350,
-			type: 'line',
-			stacked: false,
-			zoom: {
-				enabled: false
-			},
-			toolbar: {
-				show: false
-			}
-		},
-		grid: {
-			strokeDashArray: 2,
-			borderColor: 'rgba(15,156,230,.6)',
-			xaxis: {
-				lines: {
-					show: true
-				}
-			},
-		},
-		colors: ['#ac0c46', '#b7713f', '#2575c4', '#319600', '#ff66ff'],
-		dataLabels: {
-			enabled: false
-		},
-		stroke: {
-			curve: 'smooth',
-			width: [6, 6, 3, 3, 3]
-		},
-		markers: {
-			strokeColors: '#1c2e3b',
-		},
-		xaxis: {
-			axisTicks: {
-				show: false,
-			},
-			axisBorder: {
-				show: false
-			},
-			tooltip: {
-				enabled: false
-			},
-			categories: ['-3:30h', '-3:15h', '-3:00h', '-2:45h', '-2:30h', '-2:15h', '-2:00h', '-1:45h', '-1:30h', '-1:15h', '-1:00h', '-0:45h', '-0:30h', '-0:15h', 'Now'],
-		},
-		yaxis: [
-			{
-				seriesName: 'Heater temperature',
-				axisTicks: {
-					show: false,
-				},
-				axisBorder: {
-					show: false,
-				},
-				labels: {
-					style: {
-						fontSize: "12px",
-						colors: '#dd004a',
-					},
-					formatter: function(val, index) {
-						return (val==null) ? '' : val.toFixed(0)+'°C';
-					}
-				},
-				title: {
-					text: "Temperature",
-					style: {
-						fontWeight: 500,
-						fontSize: "18px",
-						color: '#dd004a',
-					}
-				},
-				tooltip: {
-					enabled: false
-				},
-			},
-			{
-				seriesName: 'Heater temperature',
-				show: false
-			},
-			{
-				seriesName: 'Heater temperature',
-				show: false
-			},
-			{
-				seriesName: 'Humidity inside',
-				opposite: true,
-				axisTicks: {
-					show: false,
-				},
-				axisBorder: {
-					show: false,
-				},
-				labels: {
-					style: {
-						fontSize: "12px",
-						colors: 'rgba(15,156,230,.75)',
-					},
-					formatter: function(val, index) {
-						return (val==null) ? '' : val.toFixed(0)+'%';
-					}
-				},
-				title: {
-					text: "Humidity",
-					style: {
-						fontSize: "18px",
-						fontWeight: 500,
-						color: 'rgba(15,156,230,.75)',
-					}
-				}
-			},
-			{
-				seriesName: 'Humidity inside',
-				show: false
-			}
-		],
-		annotations: {
-			yaxis: [
-				{
-					y: 45,
-					borderColor: '#e38800',
-					label: {
-						borderColor: '#e38800',
-						offsetY: 7,
-						offsetX: -8,
-						style: {
-							color: '#fff',
-							fontSize: "12px",
-							background: '#e38800',
-						},
-						text: 'Target temperature',
-					}
-				},
-				{
-					y: 55,
-					borderColor: '#f00',
-					label: {
-						borderColor: '#f00',
-						offsetY: 7,
-						offsetX: -8,
-						style: {
-							color: '#fff',
-							fontSize: "12px",
-							background: '#f00',
-						},
-						text: 'Max Heater Temperature',
-					}
-				}
-			]
-		},
-		tooltip: {
-			theme: 'dark',
-			shared: true,
-			fixed: {
-				enabled: false,
-				position: 'topLeft', // topRight, topLeft, bottomRight, bottomLeft
-				offsetY: 30,
-				offsetX: 60
-			},
-		},
-		legend: {
-			fontSize: '16px',
-			horizontalAlign: 'left',
-			offsetX: 55,
-			markers: {
-				radius: 2,
-			},
-			itemMargin: {
-				horizontal: 10,
-			},
-		}
+		]
 	};
 
-	chart = new ApexCharts(document.querySelector("#chart02"), options);
-	chart.render();
+	chartoptions = {
+		height: 320,
+		fullWidth: true,
+		chartPadding: {
+			right: 30,
+			top: 20
+		},
+		axisY: {
+			onlyInteger: true
+		},
+		plugins: [
+			Chartist.plugins.legend({
+				position: 'bottom',
+				clickable: 0
+			}),
+			Chartist.plugins.ctPointLabels({
+				textAnchor: 'middle'
+			}),
+			Chartist.plugins.ctTargetLine({
+				value: 75,
+				labelpretext: 'Max heater temperature: ',
+				labelyoffset: -3
+			})
+		]
+	};
+
+	chartoptions2 = {
+		height: 320,
+		fullWidth: true,
+		chartPadding: {
+			right: 30,
+			top: 20
+		},
+		axisY: {
+			onlyInteger: true
+		},
+		plugins: [
+			Chartist.plugins.legend({
+				position: 'bottom',
+				clickable: 0
+			}),
+			Chartist.plugins.ctPointLabels({
+				textAnchor: 'middle'
+			})
+		]
+	};
+
+	chart = new Chartist.Line(document.querySelector("#chart01"), chartdata, chartoptions);
+	chart2 = new Chartist.Line(document.querySelector("#chart02"), chartdata2, chartoptions2);
 
 	//radial chart "Temperature in"
-	let options11 = {
-		series: [0],
-		chart: {
-			type: 'radialBar',
-			offsetY: -10,
-			sparkline: {
-				enabled: true
-			}
-		},
-		plotOptions: {
-			radialBar: {
-				startAngle: -90,
-				endAngle: 90,
-				track: {
-					background: "#493b33",
-					strokeWidth: '97%',
-					margin: 5, //is in pixels
-					dropShadow: {
-						enabled: false,
-					}
-				},
-				dataLabels: {
-					name: {
-						show: true,
-						offsetY: 25,
-						color: '#0f9ce6',
-						fontSize: '20px',
-						fontWeight: 500
-					},
-					value: {
-						offsetY: -18,
-						formatter: function(val) {
-							if (val == 0) {
-								return '-- °C';
-							}else {
-								return val + ' °C';
-							}
-						},
-						color: '#aee0fa',
-						fontSize: '22px',
-					}
-				}
-			}
-		},
-		grid: {
-			padding: {
-				top: -10
-			}
-		},
-		fill: {
-			type: 'solid',
-			colors: ['#f00']
-		},
-		labels: ['Temperature in'],
+	data11 = {
+		series: [50, 50],
+		labels: ['']
 	};
 
-	chart11 = new ApexCharts(document.querySelector("#chart11"), options11);
-	chart11.render();
+	options11 = {
+		donut: true,
+		donutWidth: 18,
+		startAngle: 270,
+		total: 200,
+		showLabel: false,
+		classNames: {
+			chartDonut: "ct-fill-donut"
+		},
+		plugins: [
+			Chartist.plugins.fillDonut({
+				labelpasttext: ' °C',
+				offsetX: -20
+			})
+		],
+	};
+
+	chart11 = new Chartist.Pie(document.querySelector("#chart11"), data11, options11);
 
 	//radial chart "Humidity in"
-	let options12 = {
-		series: [0],
-		chart: {
-			type: 'radialBar',
-			offsetY: -10,
-			sparkline: {
-				enabled: true
-			}
-		},
-		plotOptions: {
-			radialBar: {
-				startAngle: -90,
-				endAngle: 90,
-				track: {
-					background: "#10425e",
-					strokeWidth: '97%',
-					margin: 5, //is in pixels
-					dropShadow: {
-						enabled: false,
-					}
-				},
-				dataLabels: {
-					name: {
-						show: true,
-						offsetY: 25,
-						color: '#0f9ce6',
-						fontSize: '20px',
-						fontWeight: 500
-					},
-					value: {
-						offsetY: -18,
-						formatter: function(val) {
-							if (val == 0) {
-								return '-- %';
-							}else {
-								return val + ' %';
-							}
-						},
-						color: '#aee0fa',
-						fontSize: '22px',
-					}
-				}
-			}
-		},
-		grid: {
-			padding: {
-				top: -10
-			}
-		},
-		fill: {
-			type: 'solid',
-			colors: ['#0f9ce6']
-		},
-		labels: ['Humidity in'],
+	data12 = {
+		series: [0, 100],
+		labels: ['']
 	};
 
-	chart12 = new ApexCharts(document.querySelector("#chart12"), options12);
-	chart12.render();
+	options12 = {
+		donut: true,
+		donutWidth: 18,
+		startAngle: 270,
+		total: 200,
+		showLabel: false,
+		classNames: {
+			chartDonut: "ct-fill-donut2"
+		},
+		plugins: [
+			Chartist.plugins.fillDonut({
+				labelpasttext: ' %',
+				offsetX: -20
+			})
+		],
+	};
+
+	chart12 = new Chartist.Pie(document.querySelector("#chart12"), data12, options12);
 
 	// "Timeout" function is not necessary - important is to hide the preloader overlay
 	setTimeout(function () {
@@ -489,7 +295,6 @@ function update_status(rearm) {
 		success: function (response) {
 			let res = response;
 
-			$('#status-fan-speed').text(res.fan_speed.toFixed(0));
 			$('#status-temp-inside').text(res.temp_in.toFixed(0));
 			$('#status-temp-heater').text(res.temp_heater.toFixed(0));
 			$('#status-humidity-inside').text(res.humid_in.toFixed(0));
@@ -498,19 +303,20 @@ function update_status(rearm) {
 
 			$('#status-temp-inside-target').val(res.target_temp_in.toFixed(0)).change().rangeslider('update', true);
 			$('#status-temp-heater-max').val(res.max_temp_heater.toFixed(0)).change().rangeslider('update', true);
-			$('#sliderFanSpeed').val(res.fan_speed.toFixed(0)).change().rangeslider('update', true);
+			chartdata.targetline = res.max_temp_heater.toFixed(0);
+			$('#sliderTargetHumidity').val(res.trgt_hmdty.toFixed(0)).change().rangeslider('update', true);
 
 			(res.in_snsr_finded == 1) ? $('#sensor_inner_status').removeClass('text-danger').addClass('text-success').html('OK') : $('#sensor_inner_status').removeClass('text-success').addClass('text-danger').html('ERROR');
 			(res.out_snsr_finded == 1) ? $('#sensor_outer_status').removeClass('text-danger').addClass('text-success').html('OK') : $('#sensor_outer_status').removeClass('text-success').addClass('text-danger').html('ERROR');
 			(res.temp_heater > 0) ? $('#sensor_heater_status').removeClass('text-danger').addClass('text-success').html('OK') : $('#sensor_heater_status').removeClass('text-success').addClass('text-danger').html('ERROR');
 			(res.fan_st == 1) ? $("#sliderFanSpeed-switch").prop('checked', true).parent().addClass('checked').closest('.card').addClass('active') : $("#sliderFanSpeed-switch").prop('checked', false).parent().removeClass('checked').closest('.card').removeClass('active');
+			(res.fanst == 1) ? $("#status-fan-status").html('ON') : $("#status-fan-status").html('OFF');
 
-			chart11.updateSeries([
-				res.temp_in.toFixed(0)
-			]);
-			chart12.updateSeries([
-				res.humid_in.toFixed(0)
-			]);
+			data11.series = [res.temp_in.toFixed(0)-0, 100-res.temp_in.toFixed(0)];
+			chart11.update(data11, options11);
+
+			data12.series = [res.humid_in.toFixed(0)-0, 100-res.humid_in.toFixed(0)];
+			chart12.update(data12, options12);
 
 			// Homed status
 			if (res.status == 1) {
@@ -534,7 +340,7 @@ function update_status(rearm) {
 				$('#sliderFanSpeed-switch').attr('disabled', '').parent().addClass('disabled');
 			}
 
-			update_stats();
+			update_stats(rearm);
 
 			lock_ui(false, res.status);
 
@@ -544,15 +350,15 @@ function update_status(rearm) {
 			$('#status-box').addClass('heating').removeClass('cooling').find('.status').addClass('blink').text('Dry box is unreachable!');
 			lock_ui(true);
 			status_reading_now = false;
+
+			if (rearm) {
+				rearm_status();
+			}
 		}
 	});
-
-	if (rearm) {
-		rearm_status();
-	}
 }
 
-function update_stats() {
+function update_stats(rearm) {
 	$.ajax({
 		url: "/stats",
 		dataType: 'json',
@@ -564,34 +370,40 @@ function update_stats() {
 					if (res[i][j] == 0) { res[i][j] = null;}
 				}
 			}
-			chart.updateSeries([
-				{
-					name: 'Heater temperature',
-					type: 'line',
-					data: res[0]
-				},
+			chartdata.series = [
 				{
 					name: 'Temperature inside',
-					type: 'line',
 					data: res[1]
 				}, {
 					name: 'Temperature outside',
-					type: 'line',
 					data: res[2]
 				},
 				{
+					name: 'Heater temperature',
+					data: res[0]
+				}
+			];
+			chart.update(chartdata, chartoptions);
+
+			chartdata2.series = [
+				{
 					name: 'Humidity inside',
-					type: 'line',
 					data: res[3]
 				},
 				{
 					name: 'Humidity outside',
-					type: 'line',
 					data: res[4]
 				}
-			]);
+			];
+			chart2.update(chartdata2, chartoptions2);
+			if (rearm) {
+				rearm_status();
+			}
 		},
 		error: function (xhr) {
+			if (rearm) {
+				rearm_status();
+			}
 		}
 	})
 }
@@ -604,7 +416,7 @@ function setparams() {
 		data: {
 			trgt_tmpr: $("#status-temp-inside-target").val(),
 			max_htr_tmpr: $("#status-temp-heater-max").val(),
-			fan_spd: $("#sliderFanSpeed").val(),
+			trgt_hmdty: $("#sliderTargetHumidity").val(),
 			fan_st: ($("#sliderFanSpeed-switch").prop('checked') ? 1 : 0)
 		},
 		success: function (response) {
@@ -619,38 +431,42 @@ function lock_ui(lock, status = 0) {
 	if (lock) {
 		$('#stop,#start').attr('disabled', '');
 		$('#sliderFanSpeed-switch').attr('disabled', '').parent().addClass('disabled');
-		$('#status-temp-inside-target,#status-temp-heater-max,#sliderFanSpeed').attr('disabled', '').rangeslider('update', true);
+		$('#status-temp-inside-target,#status-temp-heater-max,#sliderTargetHumidity').attr('disabled', '').rangeslider('update', true);
 		$('#sensor_inner_status,#sensor_outer_status,#sensor_heater_status').removeClass('text-success').html('--');
-		$('#status-temp-heater,#status-temp-inside,#status-temp-outside,#status-humidity-inside,#status-humidity-outside,#status-fan-speed').html('--');
+		$('#status-temp-heater,#status-temp-inside,#status-temp-outside,#status-humidity-inside,#status-humidity-outside,#status-fan-status').html('--');
 		$('#work-time').html('--:--:--');
-		chart.updateSeries([
-			{
-				name: 'Heater temperature',
-				type: 'line',
-				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
-			},
+		chartdata.series = [
 			{
 				name: 'Temperature inside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			}, {
 				name: 'Temperature outside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			},
 			{
+				name: 'Heater temperature',
+				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+			}
+		];
+		chart.update(chartdata, chartoptions);
+
+		chartdata2.series = [
+			{
 				name: 'Humidity inside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			},
 			{
 				name: 'Humidity outside',
-				type: 'line',
 				data: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 			}
-		]);
-		chart11.updateSeries([0]);
-		chart12.updateSeries([0]);
+		];
+		chart2.update(chartdata2, chartoptions2);
+
+		data11.series = [0, 100];
+		chart11.update(data11, options11);
+
+		data12.series = [0, 100];
+		chart12.update(data12, options12);
 	} else { //unlock
 		$('#stop,#start').removeAttr('disabled');
 		if (status == 1) {
@@ -658,7 +474,7 @@ function lock_ui(lock, status = 0) {
 		} else {
 			$('#sliderFanSpeed-switch').attr('disabled', '').parent().addClass('disabled');
 		}
-		$('#status-temp-inside-target,#status-temp-heater-max,#sliderFanSpeed').removeAttr('disabled').rangeslider('update', true);
+		$('#status-temp-inside-target,#status-temp-heater-max,#sliderTargetHumidity').removeAttr('disabled').rangeslider('update', true);
 	}
 }
 
