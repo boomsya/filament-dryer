@@ -5,6 +5,6 @@ Device (see othen photos to understand what is inside a dryer):
 ![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/20231226_222735.jpg)
 
 WEB control of dryer:
-![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/web-control.jpg)
+![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/web-control2.jpg)
 
 # Stand with Ukraine! -> [United24](https://u24.gov.ua/)
