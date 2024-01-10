@@ -25,7 +25,7 @@
 #define HEATER_DUTY_OFF             0
 
 #define LIMIT_TEMP_IN_MAX           70
-#define LIMIT_TEMP_HEATER_MAX       75
+#define LIMIT_TEMP_HEATER_MAX       110
 
 #define WIFI_CHECK_CONNECTION_MS    10000
 
@@ -34,3 +34,4 @@
 #define DEF_DEBUG_SENSOR_SAMPLES    0
 #define DEF_DEBUG_PWM_VALUES        0
 #define DEF_DEBUG_LITTLEFS          0
+#define DEF_DEBUG_WEB_API           0
