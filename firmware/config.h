@@ -4,7 +4,7 @@
 #define PIN_DHT11_INNER             D7 //Data
 #define PIN_DHT11_OUTER             D3 //Data
 #define PIN_HEATER_PWM              D1 //Heater element PWM
-#define PIN_FAN_PWM                 D5 //Fan speed
+#define PIN_FAN                     D5 //Fan speed
 #define PIN_ON_OFF_BTN              D4 //On-Off button
 #define PIN_LED_ORANGE              D6 //Has errors (sensors, LittleFS)
 #define PIN_LED_RED                 D0 //Dry box is active
