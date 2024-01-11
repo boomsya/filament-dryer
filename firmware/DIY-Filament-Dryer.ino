@@ -336,7 +336,6 @@ void sample_sens_in_and_out(void)
 float readHeaterTemperature()
 {
   float tempC = filtered_temperature.filtered(therm1.readTemperature()); //read temperature near heater
-  if (tempC > 300) { tempC = 300; }
   #if DEF_DEBUG_SENSOR_SAMPLES
     Serial.print("Temp C: ");
     Serial.println(tempC);
