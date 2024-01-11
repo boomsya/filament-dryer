@@ -20,7 +20,7 @@ int WiFi_status = WL_IDLE_STATUS;
 unsigned long wifi_tick_previous = 0;
 
 //Sensors
-Thermistor2 therm1(PIN_HEATER_SENSOR, false, 4700, 10000, 25, 3950, 1); //connect thermistor to A0 pin
+Thermistor2 therm1(PIN_HEATER_SENSOR, false, 10000, 10000, 25, 3950, 1); //connect NTC 100K B3950 thermistor to A0 pin
 GMedian<10, int> filtered_temperature; //temperature read filter (ADC is not very good)
 DHTStable temp_sensor_in;//inner temperature sensor
 DHTStable temp_sensor_out;//outer temperature sensor
@@ -89,8 +89,8 @@ void setup()
   analogWrite(PIN_HEATER_PWM, LOW);
 
   //FAN -- Make sure FAN is initially OFF
-  pinMode(PIN_FAN_PWM, OUTPUT);
-  digitalWrite(PIN_FAN_PWM, LOW);
+  pinMode(PIN_FAN, OUTPUT);
+  digitalWrite(PIN_FAN, LOW);
 
   //Check temperature and humidity sensors
   uint8_t i = 5;
@@ -98,9 +98,9 @@ void setup()
   while (i-- && (chk1 != DHTLIB_OK)) {
     Serial.println("Can't find outer DHT11 sensor!");
     delay(250);
-    LED_ON(PIN_LED_ORANGE);
+    LED_ON(PIN_LED_RED);
     delay(250);
-    LED_OFF(PIN_LED_ORANGE);
+    LED_OFF(PIN_LED_RED);
     delay(250);
     chk1 = temp_sensor_out.read11(PIN_DHT11_OUTER);
   }
@@ -114,9 +114,9 @@ void setup()
   while (i-- && (chk2 != DHTLIB_OK)) {
     Serial.println("Can't find inner DHT11 sensor!");
     delay(250);
-    LED_ON(PIN_LED_ORANGE);
+    LED_ON(PIN_LED_RED);
     delay(250);
-    LED_OFF(PIN_LED_ORANGE);
+    LED_OFF(PIN_LED_RED);
     delay(250);
     chk2 = temp_sensor_in.read11(PIN_DHT11_INNER);
   }
@@ -160,9 +160,9 @@ void setup()
   if (!LittleFS.begin()) {
     Serial.println("An Error has occurred while mounting LittleFS");
     while (1) {
-      LED_ON(PIN_LED_ORANGE);
+      LED_ON(PIN_LED_RED);
       delay(500);
-      LED_OFF(PIN_LED_ORANGE);
+      LED_OFF(PIN_LED_RED);
       delay(500);
     }
   }
@@ -335,7 +335,7 @@ void sample_sens_in_and_out(void)
 
 float readHeaterTemperature()
 {
-  float tempC = filtered_temperature.filtered(therm1.convertFtoC(therm1.readTemperature())); //read temperature near heater
+  float tempC = filtered_temperature.filtered(therm1.readTemperature()); //read temperature near heater
   if (tempC > 300) { tempC = 300; }
   #if DEF_DEBUG_SENSOR_SAMPLES
     Serial.print("Temp C: ");
@@ -348,9 +348,9 @@ void enable_fan(uint16_t enabled)
 {
   fan_status = enabled;
   if (enabled == 1){
-    digitalWrite(PIN_FAN_PWM, HIGH);
+    digitalWrite(PIN_FAN, HIGH);
   } else {
-    digitalWrite(PIN_FAN_PWM, LOW);
+    digitalWrite(PIN_FAN, LOW);
   }
 }
 
@@ -376,6 +376,11 @@ void set_heater_pwm(uint32_t pwm)
   #if DEF_DEBUG_PWM_VALUES
     Serial.println((String) "set_heater_duty: " + pwm + "/" + PWM_MAX_VALUE);
   #endif
+  if (pwm > 0){
+    LED_ON(PIN_LED_ORANGE);
+  } else {
+    LED_OFF(PIN_LED_ORANGE);
+  }
   analogWrite(PIN_HEATER_PWM, pwm);
 }
 
