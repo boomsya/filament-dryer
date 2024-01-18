@@ -7,4 +7,7 @@ Device (see othen photos to understand what is inside a dryer):
 WEB control of dryer:
 ![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/web-control3.jpg)
 
+Drying PEt filament from bottles:
+![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/DSC_0015.jpg)
+
 # Stand with Ukraine! -> [United24](https://u24.gov.ua/)
