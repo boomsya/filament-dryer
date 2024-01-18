@@ -8,6 +8,6 @@ WEB control of dryer:
 ![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/web-control3.jpg)
 
 Drying PET filament from bottles:
-![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/DSC_0015.jpg)
+![filament-dryer](https://github.com/boomsya/filament-dryer/blob/main/DSC_0015.JPG)
 
 # Stand with Ukraine! -> [United24](https://u24.gov.ua/)
