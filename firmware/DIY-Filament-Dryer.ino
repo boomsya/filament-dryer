@@ -175,6 +175,8 @@ void setup()
     debug_littlefs_files();
   #endif
 
+  temperature_heater = readHeaterTemperature(true);
+
   for (uint8_t i = 0; i < 5; i++) {
     for (uint8_t j = 0; j < 15; j++) {
       statistics[i][j] = 0;
@@ -192,7 +194,7 @@ void loop()
   //MDNS.update();
 
   //Sample temperature and humidity from all available sensors
-  temperature_heater = readHeaterTemperature();
+  temperature_heater = readHeaterTemperature(false);
   sample_sens_in_and_out();
 
   //Debug
@@ -254,7 +256,7 @@ void loop()
       statistics[1][14] = 0;
       statistics[3][14] = 0;
     }
-    statistics[0][14] = readHeaterTemperature();//Heater temperature
+    statistics[0][14] = readHeaterTemperature(false);//Heater temperature
     last_statistics_update_time = millis();
   }
 }
@@ -333,9 +335,15 @@ void sample_sens_in_and_out(void)
   }
 }
 
-float readHeaterTemperature()
+float readHeaterTemperature(bool firstRead)
 {
-  float tempC = filtered_temperature.filtered(therm1.readTemperature()); //read temperature near heater
+  float tempC;
+  if (firstRead){
+    tempC = filtered_temperature.filtered(therm1.readTemperature()); //read temperature near heater
+    tempC = filtered_temperature.filtered(therm1.readTemperature()); //read temperature near heater
+  } else {
+    tempC = filtered_temperature.filtered(therm1.readTemperature()); //read temperature near heater
+  }
   #if DEF_DEBUG_SENSOR_SAMPLES
     Serial.print("Temp C: ");
     Serial.println(tempC);
@@ -543,7 +551,7 @@ void setupWebServer(void)
   //Sensors statistics (last 3:30 hour)
   server.on("/stats", HTTP_GET, [](AsyncWebServerRequest *request) {
     char buff[500] = {0};
-    StaticJsonDocument<1350> stats;
+    JsonDocument stats;
     copyArray(statistics, stats);
     /*for (uint8_t i = 0; i < 5; i++) {
       JsonArray array = stats.createNestedArray();
